@@ -2,6 +2,7 @@ import Ember from 'ember';
 import DS from 'ember-data';
 
 import OsfModel from './osf-model';
+import {paginatedHasMany} from 'ember-osf/mixins/paginated-has-many';
 
 /**
  * Model for OSF APIv2 file providers. Primarily used in relationship fields.
@@ -16,7 +17,7 @@ export default OsfModel.extend({
     kind: DS.attr('string'),
     path: DS.attr('string'),
     provider: DS.attr('string'),
-    files: DS.hasMany('file'),
+    files: paginatedHasMany('file'),
     node: DS.belongsTo('node'),
 
     isFolder: Ember.computed.equal('kind', 'folder'),

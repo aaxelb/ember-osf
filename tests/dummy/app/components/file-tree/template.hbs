@@ -11,7 +11,7 @@
     {{/if}}
     {{#if root.isFolder}}
         <ul class="folder-list">
-            {{#each root.files as |file|}}
+            {{#each root.files.loadedItems as |file|}}
                 <li>
                     {{file-tree root=file node=node}}
                 </li>
@@ -19,5 +19,8 @@
                 <li>(empty folder)</li>
             {{/each}}
         </ul>
+        {{#if root.files}}
+            <a {{action 'loadPage' root.files}}>Load more</a>
+        {{/if}}
     {{/if}}
 </div>
