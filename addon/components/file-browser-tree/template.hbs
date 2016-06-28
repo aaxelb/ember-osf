@@ -2,10 +2,10 @@
     {{! TODO: configurable columns }}
     <td class="{{if row.selected 'selected'}}">
         {{file-browser-icon row=row}}
-        {{#if row.isLinkable}}
-            <a {{action 'clickRow' row}}>{{row.name}}</a>
+        {{#if linkable}}
+            <a {{action 'clickRow' row}}>{{row.itemName}}</a>
         {{else}}
-            {{row.name}}
+            {{row.itemName}}
         {{/if}}
     </td>
 </tr>

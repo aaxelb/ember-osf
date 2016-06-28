@@ -7,6 +7,7 @@ import {
 } from '../utils/serialize-relationship';
 
 import {paginatedHasMany} from 'ember-osf/mixins/paginated-has-many';
+import FileItemMixin from 'ember-osf/mixins/file-item';
 
 /**
  * Model for OSF APIv2 nodes. This model may be used with one of several API endpoints. It may be queried directly,
@@ -19,7 +20,7 @@ import {paginatedHasMany} from 'ember-osf/mixins/paginated-has-many';
  *    https://api.osf.io/v2/docs/#!/v2/Node_Forks_List_GET
  *    https://api.osf.io/v2/docs/#!/v2/User_Nodes_GET
  */
-export default OsfModel.extend({
+export default OsfModel.extend(FileItemMixin, {
     title: DS.attr('string'),
     description: DS.attr('string'),
     category: DS.attr('string'),

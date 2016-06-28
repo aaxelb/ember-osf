@@ -9,6 +9,7 @@ let PaginatedSet = Ember.Object.extend(Ember.Enumerable, {
     key: null,
 
     init() {
+        this.set('_cachedItems', Ember.A());
         this.getNextPage();
     },
 
@@ -57,7 +58,7 @@ let PaginatedSet = Ember.Object.extend(Ember.Enumerable, {
         return this.set('_pendingPromise', promise);
     },
 
-    _cachedItems: Ember.A(),
+    _cachedItems: null,
     _lastPage: null,
     _lastPageIndex: null,
     _pendingPromise: null

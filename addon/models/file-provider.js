@@ -3,6 +3,7 @@ import DS from 'ember-data';
 
 import OsfModel from './osf-model';
 import {paginatedHasMany} from 'ember-osf/mixins/paginated-has-many';
+import FileItemMixin from 'ember-osf/mixins/file-item';
 
 /**
  * Model for OSF APIv2 file providers. Primarily used in relationship fields.
@@ -12,14 +13,11 @@ import {paginatedHasMany} from 'ember-osf/mixins/paginated-has-many';
  *    https://api.osf.io/v2/docs/#!/v2/Node_Provider_Detail_GET
  *    https://api.osf.io/v2/docs/#!/v2/Registration_Providers_List_GET
 */
-export default OsfModel.extend({
+export default OsfModel.extend(FileItemMixin, {
     name: DS.attr('string'),
     kind: DS.attr('string'),
     path: DS.attr('string'),
     provider: DS.attr('string'),
     files: paginatedHasMany('file'),
     node: DS.belongsTo('node'),
-
-    isFolder: Ember.computed.equal('kind', 'folder'),
-    isProvider: true
 });

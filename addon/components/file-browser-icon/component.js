@@ -7,7 +7,7 @@ export default Ember.Component.extend({
     classNames: ['file-browser-icon'],
 
     click() {
-        if (this.get('row.isExpandable')) {
+        if (this.get('row.canHaveChildren')) {
             this.toggleProperty('row.expanded');
         }
     },
