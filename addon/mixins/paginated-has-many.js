@@ -1,17 +1,70 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 
-function loadedItemsAttr(key) {
-    return `__${key}_loadedItems`;
-}
+let PromiseProxy = Ember.ObjectProxy.extend(Ember.PromiseProxyMixin);
 
-function nextPageAttr(key) {
-    return `__${key}_lastLoadedPage`;
-}
+// TODO: Make mutable, handle adding/deleting objects...
+let PaginatedSet = Ember.Object.extend(Ember.Enumerable, {
+    model: null,
+    key: null,
 
-function clearAttrs(model, key) {
-    model.get(loadedItemsAttr(key)).clear();
-    model.set(nextPageAttr(key), undefined);
+    init() {
+        this.getNextPage();
+    },
+
+    length: null,
+    nextObject(index) {
+        let cached = this.get('_cachedItems');
+        let promise = null;
+        if (index < cached.get('length')) {
+            promise = Ember.RSVP.resolve(cached.objectAt(index));
+        } else if (this.get('_pendingPromise')) {
+            promise = this.get('_pendingPromise').then(() => {
+                return this.nextObject(index);
+            });
+        } else if (index < this.get('length')) {
+            promise = this.getNextPage().then(() => {
+                return this.nextObject(index);
+            });
+        }
+
+        if (promise) {
+            return PromiseProxy.create({ promise });
+        } else {
+            return undefined;
+        }
+    },
+
+    anyLoaded: Ember.computed.notEmpty('length'),
+    allLoaded: Ember.computed('length', '_cachedItems.length', function() {
+        return this.get('length') === this.get('_cachedItems.length');
+    }),
+
+    getNextPage() {
+        let model = this.get('model');
+        let key = this.get('key');
+        let page = (this.get('_lastPage') || 0) + 1;
+        let promise = model.query(key, { page }).then((newPage) => {
+            this.get('_cachedItems').addObjects(newPage);
+            this.setProperties({
+                'length': newPage.meta.pagination.total,
+                '_lastPageResult': newPage,
+                '_lastPage': page,
+                '_pendingPromise': null
+            });
+            return newPage;
+        });
+        return this.set('_pendingPromise', promise);
+    },
+
+    _cachedItems: Ember.A(),
+    _lastPage: null,
+    _lastPageIndex: null,
+    _pendingPromise: null
+});
+
+function paginatedSetAttr(key) {
+    return `__${key}_paginatedSet`;
 }
 
 function paginatedHasMany() {
@@ -20,50 +73,35 @@ function paginatedHasMany() {
     return Ember.computed({
         get(key) {
             let model = this;
-            let loadedItemsName = loadedItemsAttr(key);
-            let loadedItems = this.get(loadedItemsName);
-            if (!loadedItems) {
-                loadedItems = this.set(loadedItemsName, Ember.A());
-            }
-
-            let promise = hasMany._getter.call(this, ...arguments);
-            return DS.PromiseArray.create({
-                loadedItems,
-                promise: promise.then((result) => {
-                    loadedItems.addObjects(result);
-                    let pageAttr = nextPageAttr(key);
-                    if (!model.get(pageAttr)) {
-                        model.set(pageAttr, 2);
+            let paginatedSet = this.get(paginatedSetAttr(key));
+            if (!paginatedSet) {
+                paginatedSet = PaginatedSet.create({
+                    model,
+                    key,
+                    nextPage() {
+                        return DS.PromiseArray.create({
+                            promise: this.getNextPage()
+                        });
+                    },
+                    reload() {
+                        return hasMany.reload.call(model);
                     }
-                    return result;
-                }),
-                loadPage() {
-                    let pageAttr = nextPageAttr(key);
-                    let page = model.get(pageAttr);
-                    return model.query(key, {page}).then((result) => {
-                        loadedItems.addObjects(result);
-                        model.set(pageAttr, page + 1);
-                        return result;
-                    });
-                },
-                reload() {
-                    clearAttrs(model, key);
-                    return hasMany.reload.call(model);
-                }
-            });
+                });
+                this.set(paginatedSetAttr(key), paginatedSet);
+            }
+            return paginatedSet;
         },
-        set(key, value) {
+        set(/*key, value*/) {
+            /*
             clearAttrs(this, key);
             //let attr = loadedItemsAttr(key);
             //this.set(attr, value);
             return hasMany._setter.call(this, ...arguments);
+            */
         }
     }).meta(hasMany.meta());
 }
 
 export {paginatedHasMany};
 export default Ember.Mixin.create({
-    getNextPage(key) {
-
-    }
 });
