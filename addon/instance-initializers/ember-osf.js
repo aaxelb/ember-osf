@@ -10,6 +10,7 @@ export function initialize(appInstance) {
     tHelper.reopen({
         theme: Ember.inject.service(),
         compute(_, data) {
+            if (!this.get('theme.provider')) return this._super(_, data, true);
             // If data is defined, clone it because it is not extensible.
             data = data ? Object.assign({}, data) : {};
             let translations = this.get('i18n._locale.translations');
