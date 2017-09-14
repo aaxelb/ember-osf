@@ -1,6 +1,6 @@
 import { moduleForModel, test } from 'ember-qunit';
 
-moduleForModel('review-log', 'Unit | Model | review log', {
+moduleForModel('action', 'Unit | Model | action', {
     // Specify the other units that are required for this test.
     needs: ['model:preprint']
 });
