@@ -26,13 +26,8 @@ import AnalyticsMixin from 'ember-osf/mixins/analytics';
 export default Ember.Component.extend(hostAppName, AnalyticsMixin, {
     layout,
     session: Ember.inject.service(),
-    osfServices: Ember.computed('hostAppName', function() {
-        if (this.get('hostAppName') !== 'Preprints') return osfServices;
-        return osfServices.concat([{
-            name: 'REVIEWS',
-            url: serviceLinks.reviewsHome,
-        }]);
-    }),
+    currentUser: Ember.inject.service(),
+    osfServices: osfServices,
     serviceLinks: serviceLinks,
     host: config.OSF.url,
     currentService: Ember.computed('hostAppName', function() { // Pulls current service name from consuming service's config file
