@@ -48,6 +48,10 @@ export default Ember.Component.extend(hostAppName, AnalyticsMixin, {
         const service = this.get('currentService');
         return this.get('serviceLinks')[serviceMapping[service]];
     }),
+    serviceSubmitLink: Ember.computed('serviceLinks', 'addPreprintUrl', function() {
+        const submitLink = this.get('serviceLinks')['preprintsSubmit'];
+        return Ember.isEmpty(this.get('addPreprintUrl')) ? submitLink : this.get('addPreprintUrl') + 'submit'
+    }),
     showSearch: false,
     actions: {
         // Toggles whether search bar is displayed (for searching OSF)

@@ -33,7 +33,8 @@
 
         {{#navbar.content classNames='navbar-right-md'}}
             {{#navbar.nav as |nav|}}
-                {{#each (build-secondary-nav-links currentService) as |navLink|}}
+                {{!SECONDARY NAVIGATION - displays corresponding links for selected service}}
+                {{#each (build-secondary-nav-links currentService baseServiceUrl) as |navLink|}}
                     {{#if (and (eq currentService 'HOME') (eq navLink.type "search"))}}
                         {{#nav.item}}
                             {{!TOGGLE SEARCH BUTTON FOR HOME SERVICE}}
