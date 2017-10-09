@@ -91,7 +91,7 @@ export default DS.Model.extend({
      * @param {Object} params Query parameters
      * @returns {ArrayPromiseProxy} Promise-aware ArrayProxy
      */
-    query(model, propertyName, params) {
+    query(propertyName, params) {
 	const reference = this.hasMany(propertyName);
 	const store = reference.store;
 	const promise = new Ember.RSVP.Promise((resolve, reject) => {
