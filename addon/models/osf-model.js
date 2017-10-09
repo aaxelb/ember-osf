@@ -92,31 +92,31 @@ export default DS.Model.extend({
      * @returns {ArrayPromiseProxy} Promise-aware ArrayProxy
      */
     query(propertyName, params) {
-	const reference = this.hasMany(propertyName);
-	const store = reference.store;
-	const promise = new Ember.RSVP.Promise((resolve, reject) => {
-	    // HACK: ember-data discards/ignores the link if an object on the belongsTo side came first.
-	    // In that case, grab the link where we expect it from OSF's API
-	    const url = reference.link() || this.get(`links.relationships.${propertyName}.links.related.href`);
-	    if (url) {
-		Ember.$.ajax(url, {
-		    data: params,
-		    xhrFields: {
-			withCredentials: true
-		    },
-		}).then(payload => {
-		    store.pushPayload(payload);
-		    const records = payload.data.map(datum => store.peekRecord(datum.type, datum.id));
-		    records.meta = payload.meta;
-		    records.links = payload.links;
-		    resolve(records);
-		}, reject);
-	    } else {
-		reject(`Could not find a link for '${propertyName}' relationship`);
-	    }
-	});
+        const reference = this.hasMany(propertyName);
+        const store = reference.store;
+        const promise = new Ember.RSVP.Promise((resolve, reject) => {
+            // HACK: ember-data discards/ignores the link if an object on the belongsTo side came first.
+            // In that case, grab the link where we expect it from OSF's API
+            const url = reference.link() || this.get(`links.relationships.${propertyName}.links.related.href`);
+            if (url) {
+                Ember.$.ajax(url, {
+                    data: params,
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                }).then(payload => {
+                    store.pushPayload(payload);
+                    const records = payload.data.map(datum => store.peekRecord(datum.type, datum.id));
+                    records.meta = payload.meta;
+                    records.links = payload.links;
+                    resolve(records);
+                }, reject);
+            } else {
+                reject(`Could not find a link for '${propertyName}' relationship`);
+            }
+        });
 
-	const ArrayPromiseProxy = Ember.ArrayProxy.extend(Ember.PromiseProxyMixin);
-	return ArrayPromiseProxy.create({ promise });
+        const ArrayPromiseProxy = Ember.ArrayProxy.extend(Ember.PromiseProxyMixin);
+        return ArrayPromiseProxy.create({ promise });
     },
 });
