@@ -1,8 +1,6 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 
-import HasManyQuery from 'ember-data-has-many-query';
-
 /**
  * @module ember-osf
  * @submodule models
@@ -14,7 +12,7 @@ import HasManyQuery from 'ember-data-has-many-query';
  * @class OsfModel
  * @public
  */
-export default DS.Model.extend(HasManyQuery.ModelMixin, {
+export default DS.Model.extend({
     links: DS.attr('links'),
     embeds: DS.attr('embed'),
 
@@ -71,5 +69,54 @@ export default DS.Model.extend(HasManyQuery.ModelMixin, {
             }
         });
         return this._super(...arguments);
-    }
+    },
+
+    /**
+     * Queries a hasMany relationship
+     *
+     * If you query like this:
+     * ```javascript
+     * provider.query('preprints', { page: 1 });
+     * ```
+     *
+     * It will make a request like
+     * ```
+     * GET "/api/v2/preprint_providers/osf/preprints/?page=1"
+     * ```
+     *
+     * And push the results into the store. Any top-level `meta` or `links` in the response
+     * will be available on the returned array.
+     *
+     * @param {String} propertyName Relationship property name
+     * @param {Object} params Query parameters
+     * @returns {ArrayPromiseProxy} Promise-aware ArrayProxy
+     */
+    query(model, propertyName, params) {
+	const reference = this.hasMany(propertyName);
+	const store = reference.store;
+	const promise = new Ember.RSVP.Promise((resolve, reject) => {
+	    // HACK: ember-data discards/ignores the link if an object on the belongsTo side came first.
+	    // In that case, grab the link where we expect it from OSF's API
+	    const url = reference.link() || this.get(`links.relationships.${propertyName}.links.related.href`);
+	    if (url) {
+		Ember.$.ajax(url, {
+		    data: params,
+		    xhrFields: {
+			withCredentials: true
+		    },
+		}).then(payload => {
+		    store.pushPayload(payload);
+		    const records = payload.data.map(datum => store.peekRecord(datum.type, datum.id));
+		    records.meta = payload.meta;
+		    records.links = payload.links;
+		    resolve(records);
+		}, reject);
+	    } else {
+		reject(`Could not find a link for '${propertyName}' relationship`);
+	    }
+	});
+
+	const ArrayPromiseProxy = Ember.ArrayProxy.extend(Ember.PromiseProxyMixin);
+	return ArrayPromiseProxy.create({ promise });
+    },
 });
